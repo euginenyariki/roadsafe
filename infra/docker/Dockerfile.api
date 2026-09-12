@@ -1,0 +1,14 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY packages/ ./packages/
+COPY services/api/ ./services/api/
+
+RUN npm install
+RUN npm run build -w services/api
+
+EXPOSE 3001
+
+CMD ["npm", "start", "-w", "services/api"]

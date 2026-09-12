@@ -1,0 +1,152 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgis/postgis:15-3.3
+    container_name: roadsafe-postgres
+    environment:
+      POSTGRES_DB: roadsafe
+      POSTGRES_USER: roadsafe
+      POSTGRES_PASSWORD: password123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U roadsafe"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - roadsafe
+
+  redis:
+    image: redis:7-alpine
+    container_name: roadsafe-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - roadsafe
+
+  minio:
+    image: minio/minio:latest
+    container_name: roadsafe-minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/minio_root
+    command: minio server /minio_root --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - roadsafe
+
+  api:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.api
+    container_name: roadsafe-api
+    environment:
+      NODE_ENV: development
+      API_PORT: 3001
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: roadsafe
+      DATABASE_PASSWORD: password123
+      DATABASE_NAME: roadsafe
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: dev-jwt-secret-change-in-production
+      CORS_ORIGIN: http://localhost:3000,http://localhost:3002,http://localhost:3003
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./services/api/src:/app/services/api/src
+      - ./services/api/dist:/app/services/api/dist
+    networks:
+      - roadsafe
+
+  web:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.web
+    container_name: roadsafe-web
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NEXT_PUBLIC_APP_NAME: RoadSafe
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    volumes:
+      - ./apps/web/src:/app/apps/web/src
+      - ./apps/web/public:/app/apps/web/public
+    networks:
+      - roadsafe
+
+  admin:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.admin
+    container_name: roadsafe-admin
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NEXT_PUBLIC_APP_NAME: RoadSafe Admin
+    ports:
+      - "3002:3002"
+    depends_on:
+      - api
+    volumes:
+      - ./apps/admin/src:/app/apps/admin/src
+      - ./apps/admin/public:/app/apps/admin/public
+    networks:
+      - roadsafe
+
+  provider:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.provider
+    container_name: roadsafe-provider
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NEXT_PUBLIC_APP_NAME: RoadSafe Provider
+    ports:
+      - "3003:3003"
+    depends_on:
+      - api
+    volumes:
+      - ./apps/provider/src:/app/apps/provider/src
+      - ./apps/provider/public:/app/apps/provider/public
+    networks:
+      - roadsafe
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+
+networks:
+  roadsafe:
+    driver: bridge

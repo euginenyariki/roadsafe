@@ -1,0 +1,14 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY packages/ ./packages/
+COPY apps/admin/ ./apps/admin/
+
+RUN npm install
+RUN npm run build -w apps/admin
+
+EXPOSE 3002
+
+CMD ["npm", "start", "-w", "apps/admin"]
