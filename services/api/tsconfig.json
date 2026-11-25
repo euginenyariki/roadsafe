@@ -24,8 +24,8 @@
     "emitDecoratorMetadata": true,
     "paths": {
       "@/*": ["src/*"],
-      "@database/*": ["../../../packages/database/src/*"],
-      "@shared/*": ["../../../packages/*"]
+      "@database/*": ["../../packages/database/src/*"],
+      "@shared/*": ["../../packages/*"]
     }
   },
   "include": ["src/**/*"],
