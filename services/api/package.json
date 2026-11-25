@@ -34,7 +34,7 @@
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.3.3",
     "@nestjs/swagger": "^7.1.17",
-    "@nestjs/typeorm": "^9.0.1",
+    "@nestjs/typeorm": "^12.0.3",
     "@nestjs/websockets": "^10.3.3",
     "@nestjs/schedule": "^4.0.1",
     "@nestjs/bull": "^10.1.1",
@@ -55,7 +55,7 @@
     "winston": "^3.11.0",
     "compression": "^1.7.4",
     "helmet": "^7.1.0",
-    "swagger-ui-express": "^7.0.0",
+    "swagger-ui-express": "^5.0.1",
     "express-rate-limit": "^7.1.5"
   },
   "devDependencies": {
@@ -76,6 +76,7 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3",
-    "rimraf": "^5.0.5"
+    "rimraf": "^5.0.5",
+    "@types/compression": "^1.7.5"
   }
 }
