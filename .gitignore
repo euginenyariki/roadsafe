@@ -64,3 +64,7 @@ node_modules/.db-lock
 *.tmp
 *.temp
 .turbo
+
+# Build artifacts
+dist/
+*.tsbuildinfo
